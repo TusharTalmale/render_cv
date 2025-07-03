@@ -1,10 +1,6 @@
 "use client";
-import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Download, Plus, Trash2, Clipboard, Check, ChevronDown, ChevronUp, FileText, MapPin, Mail, Phone, Github, Linkedin, Link as LinkIcon, User, Award, BookOpen, Code, Lightbulb, X } from 'lucide-react';
-import dynamic from 'next/dynamic'; // Import dynamic from next/dynamic
-
-// Dynamically import html2pdf.js to ensure it's only loaded on the client-side
-const html2pdf = dynamic(() => import('html2pdf.js'), { ssr: false });
+import React, { useState, useCallback, useEffect } from 'react';
+import { Download, Plus, Trash2, Clipboard, Check, ChevronDown, ChevronUp, FileText, MapPin, Mail, Phone, Github, Linkedin, Link as LinkIcon, User, Award, BookOpen, Code, Lightbulb } from 'lucide-react';
 
 // Helper Components (assuming these are custom components you've defined)
 
@@ -51,28 +47,6 @@ const Section = ({ title, children, className = "", id }) => {
     </section>
   );
 };
-
-// New Modal Component
-const Modal = ({ isOpen, onClose, children, title }) => {
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50 p-4">
-      <div className="relative bg-white rounded-xl shadow-lg w-full max-w-4xl max-h-[90vh] overflow-y-auto custom-scrollbar">
-        <div className="flex justify-between items-center p-4 border-b border-gray-200">
-          <h2 className="text-xl font-bold text-[#1A3636]">{title}</h2>
-          <button onClick={onClose} className="text-gray-500 hover:text-gray-700">
-            <X size={24} />
-          </button>
-        </div>
-        <div className="p-4">
-          {children}
-        </div>
-      </div>
-    </div>
-  );
-};
-
 
 // Main App Component
 export default function App() {
@@ -123,14 +97,12 @@ export default function App() {
         description: '• Developed and maintained full-stack web applications using React, Node.js, and PostgreSQL.\n• Optimized database queries, resulting in a 15% improvement in application response time.\n• Collaborated with product managers to define and implement new features, enhancing user experience.'
       },
     ],
-    // Updated skills structure to be an array of objects
-    skills: [
-      { category: 'Languages', list: 'JavaScript, Python, Java, C++' },
-      { category: 'Frameworks', list: 'React, Node.js, Next.js, Spring Boot, Django' },
-      { category: 'Databases', list: 'PostgreSQL, MongoDB, MySQL' },
-      { category: 'Tools', list: 'Docker, Kubernetes, AWS, Git, JIRA' },
-      { category: 'Soft Skills', list: 'Teamwork, Communication, Problem-solving' }
-    ],
+    skills: {
+      languages: 'JavaScript, Python, Java, C++',
+      frameworks: 'React, Node.js, Next.js, Spring Boot, Django',
+      databases: 'PostgreSQL, MongoDB, MySQL',
+      tools: 'Docker, Kubernetes, AWS, Git, JIRA',
+    },
     projects: [
       {
         title: 'E-commerce Platform',
@@ -181,13 +153,6 @@ export default function App() {
     awards: true,
     certifications: true,
   });
-  // New state for active preview tab
-  const [activePreviewTab, setActivePreviewTab] = useState('code'); // 'code' or 'resume'
-  const [isResumeModalOpen, setIsResumeModalOpen] = useState(false); // State for modal visibility
-
-  // Ref for the ResumePreview component to capture its content for PDF
-  const resumePreviewRef = useRef(null);
-
 
   const toggleSection = (sectionKey) => {
     setExpandedSections(prevState => ({
@@ -315,13 +280,14 @@ ${data.experience.map(exp => `
 %----------------------------------------------------------------------------------------
 %   SKILLS
 %----------------------------------------------------------------------------------------
-${data.skills.length > 0 ? `
+${Object.values(data.skills).some(skill => skill) ? `
 \\section*{Skills}
 \\vspace{-5pt}
 \\begin{itemize}[leftmargin=*,labelsep=0.5em,itemsep=0ex,parsep=0ex]
-${data.skills.map(skillCat => `
-    \\item \\textbf{${escapeLatex(skillCat.category)}:} ${escapeLatex(skillCat.list)}
-`).join('\n')}
+${data.skills.languages ? `    \\item \\textbf{Languages:} ${escapeLatex(data.skills.languages)}` : ''}
+${data.skills.frameworks ? `    \\item \\textbf{Frameworks:} ${escapeLatex(data.skills.frameworks)}` : ''}
+${data.skills.databases ? `    \\item \\textbf{Databases:} ${escapeLatex(data.skills.databases)}` : ''}
+${data.skills.tools ? `    \\item \\textbf{Tools:} ${escapeLatex(data.skills.tools)}` : ''}
 \\end{itemize}
 ` : ''}
 
@@ -400,20 +366,15 @@ ${data.certifications.map(cert => `
     }));
   };
 
-  // Modified handleSkillsChange to work with array of objects
-  const handleSkillsChange = (index, e) => {
+  const handleSkillsChange = (e) => {
     const { name, value } = e.target;
-    setResumeData(prevData => {
-      const updatedSkills = [...prevData.skills];
-      updatedSkills[index] = {
-        ...updatedSkills[index],
+    setResumeData(prevData => ({
+      ...prevData,
+      skills: {
+        ...prevData.skills,
         [name]: value,
-      };
-      return {
-        ...prevData,
-        skills: updatedSkills,
-      };
-    });
+      },
+    }));
   };
 
   const handleDynamicChange = (section, index, e) => {
@@ -455,7 +416,7 @@ ${data.certifications.map(cert => `
     setTimeout(() => setCopied(false), 2000);
   };
 
-  const handleDownloadTex = () => { // Renamed to clarify it's for .tex
+  const handleDownload = () => {
     const blob = new Blob([generatedLatex], { type: 'text/plain;charset=utf-8' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
@@ -464,25 +425,8 @@ ${data.certifications.map(cert => `
     URL.revokeObjectURL(link.href);
   };
 
-  const handleDownloadPdf = () => {
-    if (resumePreviewRef.current) {
-      const element = resumePreviewRef.current;
-      // Use html2pdf.js to generate PDF
-      const opt = {
-        margin: 1,
-        filename: 'resume.pdf',
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, logging: true, dpi: 192, letterRendering: true },
-        jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
-      };
-      // html2pdf is now dynamically imported, so it will be available here
-      html2pdf().set(opt).from(element).save();
-    } else {
-      alert("Resume preview element not found for PDF generation. This should not happen if the component is mounted.");
-    }
-  };
-
   const handleOpenInOverleaf = () => {
+    const overleafBaseUrl = "https://www.overleaf.com/docs";
     // This is a simplified approach. Overleaf usually requires a project ID or a specific API.
     // For a real integration, you'd likely need to use their API or a more robust method.
     // As a workaround, you can provide instructions to the user to copy-paste.
@@ -524,24 +468,18 @@ ${data.certifications.map(cert => `
           <p className="text-xl md:text-2xl text-[#D6BD98] mb-6">Create a polished, ATS-friendly resume in LaTeX format</p>
           <div className="flex justify-center space-x-4">
             <button
-              onClick={handleDownloadTex}
+              onClick={handleDownload}
               className="bg-[#D6BD98] hover:bg-[#c5ab7f] text-[#1A3636] font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition"
             >
-              <Download size={20} /> Download .tex Template
-            </button>
-            <button
-              onClick={handleDownloadPdf}
-              className="bg-[#D6BD98] hover:bg-[#c5ab7f] text-[#1A3636] font-bold py-3 px-6 rounded-lg flex items-center gap-2 transition"
-            >
-              <Download size={20} /> Download as PDF
+              <Download size={20} /> Download Template
             </button>
           </div>
         </div>
       </header>
 
-      <main className="container mx-auto px-12 py-8 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* --- Form Column (1/2 width on desktop) --- */}
-        <div className="lg:col-span-1 space-y-8">
+      <main className="container mx-auto px-6 py-8 grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* --- Form Column --- */}
+        <div className="lg:col-span-2 space-y-8">
           <Section
             title={<SectionTitle title="Personal Information" sectionKey="personal" />}
             className="border-t-4 border-[#1A3636]"
@@ -749,43 +687,40 @@ ${data.certifications.map(cert => `
             </>}
           </Section>
 
-          {/* Dynamic Skills Section */}
           <Section
             title={<SectionTitle title="Skills" sectionKey="skills" />}
             className="border-t-4 border-[#1A3636]"
             id="skills"
           >
             {expandedSections.skills && <>
-              {resumeData.skills.map((skillCat, index) => (
-                <div key={index} className="relative p-6 border-l-4 border-[#677D6A] bg-white rounded-lg shadow-sm mb-6">
-                  <Input
-                    label="Skill Category Name"
-                    name="category"
-                    value={skillCat.category}
-                    onChange={(e) => handleSkillsChange(index, e)}
-                    icon={<Code size={18} className="text-[#677D6A]" />}
-                  />
-                  <Textarea
-                    label="Skills (comma-separated)"
-                    name="list"
-                    value={skillCat.list}
-                    onChange={(e) => handleSkillsChange(index, e)}
-                    className="mt-4"
-                  />
-                  <button
-                    onClick={() => removeDynamicItem('skills', index)}
-                    className="absolute top-4 right-4 p-1 text-red-500 hover:text-red-700 hover:bg-red-50 rounded-full transition"
-                  >
-                    <Trash2 size={18} />
-                  </button>
-                </div>
-              ))}
-              <button
-                onClick={() => addDynamicItem('skills', { category: '', list: '' })}
-                className="flex items-center gap-2 px-4 py-2 bg-[#677D6A] text-white rounded-lg hover:bg-[#5a6d5f] transition"
-              >
-                <Plus size={18} /> Add Skill Category
-              </button>
+              <Input
+                label="Languages (comma-separated)"
+                name="languages"
+                value={resumeData.skills.languages}
+                onChange={handleSkillsChange}
+                icon={<Code size={18} className="text-[#677D6A]" />}
+              />
+              <Input
+                label="Frameworks (comma-separated)"
+                name="frameworks"
+                value={resumeData.skills.frameworks}
+                onChange={handleSkillsChange}
+                icon={<Lightbulb size={18} className="text-[#677D6A]" />}
+              />
+              <Input
+                label="Databases (comma-separated)"
+                name="databases"
+                value={resumeData.skills.databases}
+                onChange={handleSkillsChange}
+                icon={<BookOpen size={18} className="text-[#677D6A]" />}
+              />
+              <Input
+                label="Tools (comma-separated)"
+                name="tools"
+                value={resumeData.skills.tools}
+                onChange={handleSkillsChange}
+                icon={<LinkIcon size={18} className="text-[#677D6A]" />}
+              />
             </>}
           </Section>
 
@@ -922,11 +857,11 @@ ${data.certifications.map(cert => `
 
         </div>
 
-        {/* --- Preview Column (1/2 width on desktop) --- */}
+        {/* --- Preview Column --- */}
         <div className="lg:col-span-1 space-y-8">
           <div className="sticky top-8 space-y-8">
             <Section
-              title={<h2 className="text-2xl font-bold text-[#1A3636]">Resume Preview</h2>}
+              title={<h2 className="text-2xl font-bold text-[#1A3636]">LaTeX Preview</h2>}
               className="border-t-4 border-[#1A3636]"
             >
               <div className="mb-6 p-4 bg-[#D6BD98] bg-opacity-20 rounded-lg border border-[#D6BD98]">
@@ -938,90 +873,37 @@ ${data.certifications.map(cert => `
                   Professional two-column LaTeX resume template with modern design
                 </p>
               </div>
-
-              {/* Shiftable / Tab functionality */}
-              <div className="flex mb-4 border-b border-gray-200">
+              <div className="relative bg-[#1A3636] text-gray-200 font-mono text-xs p-4 rounded-lg h-96 overflow-auto border border-[#40534C]">
+                <pre className="whitespace-pre-wrap"><code>{generatedLatex.substring(0, 1000)}...</code></pre>
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1A3636] to-transparent pointer-events-none"></div>
+              </div>
+              <div className="mt-6 space-y-3">
                 <button
-                  onClick={() => setActivePreviewTab('code')}
-                  className={`py-2 px-4 text-sm font-medium focus:outline-none transition-colors duration-200 ${
-                    activePreviewTab === 'code'
-                      ? 'border-b-2 border-[#1A3636] text-[#1A3636]'
-                      : 'text-gray-500 hover:text-[#40534C]'
-                  }`}
+                  onClick={handleCopy}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#40534C] text-white font-bold rounded-lg shadow hover:bg-[#344741] focus:outline-none transition"
                 >
-                  Live Code
+                  {copied ? <Check size={20} /> : <Clipboard size={20} />}
+                  {copied ? 'Copied!' : 'Copy Code'}
                 </button>
                 <button
-                  onClick={() => setActivePreviewTab('resume')}
-                  className={`py-2 px-4 text-sm font-medium focus:outline-none transition-colors duration-200 ${
-                    activePreviewTab === 'resume'
-                      ? 'border-b-2 border-[#1A3636] text-[#1A3636]'
-                      : 'text-gray-500 hover:text-[#40534C]'
-                  }`}
+                  onClick={handleDownload}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1A3636] text-white font-bold rounded-lg shadow hover:bg-[#122424] focus:outline-none transition"
                 >
-                  Live Resume
+                  <Download size={20} /> Download .tex
+                </button>
+                <button
+                  onClick={handleOpenInOverleaf}
+                  className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#677D6A] text-white font-bold rounded-lg shadow hover:bg-[#5a6d5f] focus:outline-none transition"
+                >
+                  <FileText size={20} /> Open in Overleaf
                 </button>
               </div>
-
-              {activePreviewTab === 'code' && (
-                <div className="relative bg-[#1A3636] text-gray-200 font-mono text-xs p-4 rounded-lg border border-[#40534C] max-h-[600px] overflow-y-auto custom-scrollbar">
-                  <pre className="whitespace-pre-wrap"><code>{generatedLatex}</code></pre>
-                  <div className="absolute inset-0 bg-gradient-to-t from-[#1A3636] to-transparent pointer-events-none"></div>
-                  <div className="mt-6 space-y-3">
-                    <button
-                      onClick={handleCopy}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#40534C] text-white font-bold rounded-lg shadow hover:bg-[#344741] focus:outline-none transition"
-                    >
-                      {copied ? <Check size={20} /> : <Clipboard size={20} />}
-                      {copied ? 'Copied!' : 'Copy Code'}
-                    </button>
-                    <button
-                      onClick={handleDownloadTex}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1A3636] text-white font-bold rounded-lg shadow hover:bg-[#122424] focus:outline-none transition"
-                    >
-                      <Download size={20} /> Download .tex
-                    </button>
-                    <button
-                      onClick={handleOpenInOverleaf}
-                      className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#677D6A] text-white font-bold rounded-lg shadow hover:bg-[#5a6d5f] focus:outline-none transition"
-                    >
-                      <FileText size={20} /> Open in Overleaf
-                    </button>
-                  </div>
-                </div>
-              )}
-
-              {activePreviewTab === 'resume' && (
-                <div className="relative bg-white p-4 rounded-lg border border-gray-200 max-h-[600px] overflow-y-auto custom-scrollbar">
-                  <ResumePreview data={resumeData} />
-                  <button
-                    onClick={() => setIsResumeModalOpen(true)}
-                    className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3 bg-[#1A3636] text-white font-bold rounded-lg shadow hover:bg-[#122424] focus:outline-none transition"
-                  >
-                    <FileText size={20} /> View Full Resume (Pop-up)
-                  </button>
-                </div>
-              )}
             </Section>
+
+            <ResumePreview data={resumeData} />
           </div>
         </div>
       </main>
-
-      {/* Resume Preview Modal */}
-      <Modal
-        isOpen={isResumeModalOpen}
-        onClose={() => setIsResumeModalOpen(false)}
-        title="Live Resume Preview"
-      >
-        <ResumePreview data={resumeData} ref={resumePreviewRef} /> {/* Pass ref to ResumePreview in modal */}
-      </Modal>
-
-      {/* Hidden ResumePreview for PDF generation */}
-      {/* This ensures the component is always mounted in the DOM for the ref to work */}
-      <div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
-        <ResumePreview data={resumeData} ref={resumePreviewRef} />
-      </div>
-
 
       {/* --- Footer --- */}
       <footer className="bg-[#1A3636] text-white py-8 mt-12">
@@ -1050,10 +932,9 @@ ${data.certifications.map(cert => `
 }
 
 // Enhanced ResumePreview component with new styling
-// Forward ref to allow parent component to access the DOM node
-const ResumePreview = React.forwardRef(({ data }, ref) => {
+const ResumePreview = ({ data }) => {
   return (
-    <div ref={ref} className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
+    <div className="bg-white p-6 rounded-xl shadow-md border border-gray-200">
       <div className="text-center mb-6">
         <h1 className="text-2xl font-bold text-[#1A3636]">{data.personal.name}</h1>
         <div className="flex flex-wrap justify-center gap-4 mt-3 text-sm text-[#40534C]">
@@ -1157,14 +1038,15 @@ const ResumePreview = React.forwardRef(({ data }, ref) => {
         </div>
       )}
 
-      {/* Enhanced Skills Section (Dynamic) */}
-      {data.skills.length > 0 && (
+      {/* Enhanced Skills Section */}
+      {Object.values(data.skills).some(skill => skill) && (
         <div className="mb-6">
           <h2 className="text-lg font-semibold text-[#1A3636] border-b border-[#D6BD98] pb-1 mb-3">Skills</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8 gap-y-2 text-sm text-gray-700">
-            {data.skills.map((skillCat, index) => (
-              <p key={index}><span className="font-medium text-[#1A3636]">{skillCat.category}:</span> {skillCat.list}</p>
-            ))}
+            {data.skills.languages && <p><span className="font-medium text-[#1A3636]">Languages:</span> {data.skills.languages}</p>}
+            {data.skills.frameworks && <p><span className="font-medium text-[#1A3636]">Frameworks:</span> {data.skills.frameworks}</p>}
+            {data.skills.databases && <p><span className="font-medium text-[#1A3636]">Databases:</span> {data.skills.databases}</p>}
+            {data.skills.tools && <p><span className="font-medium text-[#1A3636]">Tools:</span> {data.skills.tools}</p>}
           </div>
         </div>
       )}
@@ -1222,7 +1104,4 @@ const ResumePreview = React.forwardRef(({ data }, ref) => {
       )}
     </div>
   );
-});
-
-// Set display name for the forwarded component for better debugging
-ResumePreview.displayName = 'ResumePreview';
+};
