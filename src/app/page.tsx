@@ -1,6 +1,6 @@
 "use client";
 import React, { useState, useCallback, useEffect, useRef } from 'react';
-import { Download, Plus, Trash2, Clipboard, Check, ChevronDown, ChevronUp, FileText, MapPin, Mail, Phone, Github, Linkedin, Link as LinkIcon, User, Award, BookOpen, Code, Lightbulb, X } from 'lucide-react';
+import { Download, Plus, Trash2, Clipboard, Check, ChevronDown, ChevronUp, FileText, MapPin, Mail, Phone, Github, Linkedin, Link as LinkIcon, User,   Code,  X } from 'lucide-react';
 import dynamic from 'next/dynamic'; // Import dynamic from next/dynamic
 
 // Dynamically import html2pdf.js to ensure it's only loaded on the client-side
