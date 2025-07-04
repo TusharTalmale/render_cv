@@ -1,6 +1,15 @@
 import React from 'react';
 
-export const Input = ({ label, name, value, onChange, type = "text", icon: Icon }) => (
+interface InputProps {
+  label: string;
+  name: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  type?: string;
+  icon?: React.ReactNode;
+}
+
+const Input: React.FC<InputProps> = ({ label, name, value, onChange, type = "text", icon: Icon }) => (
   <div className="mb-4">
     <label htmlFor={name} className="block text-sm font-medium text-gray-700 mb-1 flex items-center gap-2">
       {Icon && Icon}
@@ -16,3 +25,5 @@ export const Input = ({ label, name, value, onChange, type = "text", icon: Icon 
     />
   </div>
 );
+
+export default Input;
