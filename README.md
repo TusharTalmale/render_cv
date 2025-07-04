@@ -1,19 +1,18 @@
-### README.md for RenderCV
 
-````markdown
 # RenderCV: Professional LaTeX Resume Code Generator
 
-RenderCV is a powerful web application designed to help you create polished, ATS-friendly resumes in LaTeX format with ease. Say goodbye to tedious manual formatting and hello to professionally structured resumes ready for your job applications.
+**RenderCV** is a powerful web application designed to help you create polished, ATS-friendly resumes in LaTeX format with ease. Say goodbye to tedious manual formatting and hello to professionally structured resumes ready for your job applications.
 
-### Live - 
-https://render-cv.vercel.app/
+### Live - [Click Live Web-Site](https://render-cv.vercel.app/)
+
+
 
 ### ScreenShot
 ![alt text](image-1.png)
 
 ## ✨ Features
 
--**Intuitive Form Interface:** Easily input your personal information, summary, experience, education, skills, projects, awards, and certifications through a user-friendly form.
+* **Intuitive Form Interface:** Easily input your personal information, summary, experience, education, skills, projects, awards, and certifications through a user-friendly form.
 * **Live LaTeX Code Preview:** See your LaTeX resume code update in real-time as you fill out the form.
 * **Live Resume Preview:** Get an instant visual representation of your resume's layout and content.
 * **Dynamic Section Management:** Add, edit, and remove multiple entries for sections like experience, education, skills, projects, awards, and certifications.
@@ -37,7 +36,7 @@ https://render-cv.vercel.app/
 
 1.  **Clone the repository:**
     ```bash
-    git clone [https://github.com/TusharTalmale/render_cv.git](https://github.com/TusharTalmale/render_cv.git)
+    git clone https://github.com/TusharTalmale/render_cv.git
     cd rendercv-app
     ```
 2.  **Install dependencies:**
@@ -80,5 +79,5 @@ Distributed under the MIT License. See `LICENSE` for more information.
 
 ## 📞 Contact
 
-Your Name/Organization - [tushartal2@gmail.com](mailto:tushartal2@gmail.com)
-```
+Tushar Talmale - [tushartal2@gmail.com](mailto:tushartal2@gmail.com)
+
