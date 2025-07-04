@@ -22,6 +22,7 @@ import Textarea from '../ui/Textarea';
 import Section from '../ui/Section';
 import Modal from '../ui/Modal';
 import SectionTitle from '../ui/SectionTitle';
+import Footer from '../../components/ui/Footer'; // <--- Add this line
 
 // Import template components
 import ResumePreview from '../templates/ResumePreview';
@@ -700,7 +701,6 @@ const removeDynamicItem = (section: ArraySectionKeys, index: number) => {
           </Section>
 
         </div>
-        {/* --- Preview Column (1/2 width on desktop) --- */}
         <div className="lg:col-span-1 space-y-8">
           <div className="sticky top-8 space-y-8">
             <Section
@@ -799,28 +799,8 @@ const removeDynamicItem = (section: ArraySectionKeys, index: number) => {
         <ResumePreview data={resumeData} ref={resumePreviewRef} />
       </div>
 
-      {/* --- Footer --- */}
-      <footer className="bg-[#1A3636] text-white py-8 mt-12">
-        <div className="container mx-auto px-6">
-          <div className="flex flex-col md:flex-row justify-between items-center">
-            <div className="mb-4 md:mb-0">
-              <h3 className="text-xl font-bold flex items-center gap-2">
-                <FileText className="text-[#D6BD98]" size={24} />
-                RenderCV
-              </h3>
-              <p className="text-[#D6BD98] mt-1">Create professional LaTeX resumes with ease</p>
-            </div>
-            <div className="flex space-x-6">
-              <a href="#" className="hover:text-[#D6BD98] transition">Privacy Policy</a>
-              <a href="#" className="hover:text-[#D6BD98] transition">Terms of Service</a>
-              <a href="#" className="hover:text-[#D6BD98] transition">Contact</a>
-            </div>
-          </div>
-          <div className="border-t border-[#40534C] mt-6 pt-6 text-center text-sm text-[#D6BD98]">
-            © {new Date().getFullYear()} RenderCV. All rights reserved.
-          </div>
-        </div>
-      </footer>
+
+      <Footer />
     </div>
   );
 }
